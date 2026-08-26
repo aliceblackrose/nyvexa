@@ -4,7 +4,7 @@ use std::error::Error;
 
 use gloamwire::{
     RestClient,
-    http::{CreateApplicationCommand, CreateInteractionResponseQuery},
+    http::CreateApplicationCommand,
     model::{ApplicationId, Interaction, InteractionMessageData, InteractionResponse},
 };
 
@@ -17,23 +17,17 @@ pub async fn register_global(rest: &RestClient, application_id: ApplicationId) -
     Ok(())
 }
 
-pub async fn handle(rest: &RestClient, interaction: &Interaction) -> CommandResult<()> {
+pub fn response(interaction: &Interaction) -> CommandResult<Option<InteractionResponse>> {
     let Some(command) = interaction.application_command_data()? else {
-        return Ok(());
+        return Ok(None);
     };
 
-    let response = match command.name.as_str() {
+    let content = match command.name.as_str() {
         ping::NAME => ping::response(),
-        _ => return Ok(()),
+        _ => return Ok(None),
     };
 
-    rest.create_interaction_response(
-        interaction.id,
-        &interaction.token,
-        &InteractionResponse::message(InteractionMessageData::content(response)),
-        &CreateInteractionResponseQuery::default(),
-    )
-    .await?;
-
-    Ok(())
+    Ok(Some(InteractionResponse::message(
+        InteractionMessageData::content(content),
+    )))
 }
