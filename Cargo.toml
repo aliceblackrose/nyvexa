@@ -1,0 +1,12 @@
+[package]
+name = "nyvexa"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.98"
+description = "A Discord bot powered by Gloamwire"
+license = "MIT"
+repository = "https://github.com/cybellereaper/nyvexa"
+
+[dependencies]
+gloamwire = { git = "https://github.com/cybellereaper/gloamwire", rev = "ae8f98d9f99f9082b152358a838193f717b76c87" }
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
