@@ -14,7 +14,7 @@ async fn main() -> Result<(), Error> {
 }
 
 async fn handler(request: Request) -> Result<Response<ResponseBody>, Error> {
-    if request.method() != "POST" {
+    if request.method().as_str() != "POST" {
         return response(405, json!({ "error": "method not allowed" }));
     }
 
