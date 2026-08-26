@@ -46,26 +46,29 @@ impl Bot {
                     }
                 }
                 TypedDispatchEvent::InteractionCreate(interaction) => {
-                    let result = async {
-                        let Some(response) = commands::response(&interaction)? else {
-                            return Ok::<(), commands::CommandResult<()>::Err>(());
-                        };
+                    let response = match commands::response(&interaction) {
+                        Ok(response) => response,
+                        Err(error) => {
+                            eprintln!("failed to build interaction response: {error}");
+                            continue;
+                        }
+                    };
 
-                        self.rest
-                            .create_interaction_response(
-                                interaction.id,
-                                &interaction.token,
-                                &response,
-                                &CreateInteractionResponseQuery::default(),
-                            )
-                            .await?;
+                    let Some(response) = response else {
+                        continue;
+                    };
 
-                        Ok(())
-                    }
-                    .await;
-
-                    if let Err(error) = result {
-                        eprintln!("failed to handle interaction: {error}");
+                    if let Err(error) = self
+                        .rest
+                        .create_interaction_response(
+                            interaction.id,
+                            &interaction.token,
+                            &response,
+                            &CreateInteractionResponseQuery::default(),
+                        )
+                        .await
+                    {
+                        eprintln!("failed to send interaction response: {error}");
                     }
                 }
                 _ => {}
