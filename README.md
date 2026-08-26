@@ -17,10 +17,11 @@ Nyvexa supports two interaction transports:
 
 ```text
 DISCORD_TOKEN=your-bot-token
+DISCORD_APPLICATION_ID=your-application-id
 DISCORD_PUBLIC_KEY=your-application-public-key
 ```
 
-`DISCORD_TOKEN` is used by the Gateway process and command registration. `DISCORD_PUBLIC_KEY` is used by the Vercel interaction endpoint to verify every Discord request before processing it.
+`DISCORD_TOKEN` is used by the Gateway process and command registration. `DISCORD_APPLICATION_ID` is used by the one-shot command registrar. `DISCORD_PUBLIC_KEY` is used by the Vercel interaction endpoint to verify every Discord request before processing it.
 
 Do not commit real credentials. `.env` files are ignored by Git.
 
@@ -28,10 +29,16 @@ Do not commit real credentials. `.env` files are ignored by Git.
 
 Vercel's official Rust runtime builds `api/interactions.rs` as the serverless interaction endpoint.
 
-1. Import this repository into Vercel.
-2. Add `DISCORD_PUBLIC_KEY` to the Vercel project's environment variables. Copy it from the Discord Developer Portal under the application's General Information page.
-3. Deploy the project.
-4. In the Discord Developer Portal, set the application's **Interactions Endpoint URL** to:
+1. Register Nyvexa's global commands once by setting `DISCORD_TOKEN` and `DISCORD_APPLICATION_ID`, then running:
+
+```sh
+cargo run --bin register
+```
+
+2. Import this repository into Vercel.
+3. Add `DISCORD_PUBLIC_KEY` to the Vercel project's environment variables. Copy it from the Discord Developer Portal under the application's General Information page.
+4. Deploy the project.
+5. In the Discord Developer Portal, set the application's **Interactions Endpoint URL** to:
 
 ```text
 https://YOUR-VERCEL-DOMAIN/api/interactions
@@ -60,6 +67,7 @@ Do not run Gateway interaction handling at the same time as the configured HTTP 
 ## Structure
 
 - `api/interactions.rs` — Vercel Rust serverless function and Discord signature validation.
+- `src/bin/register.rs` — one-shot global slash-command registration.
 - `src/lib.rs` — shared application logic exposed to serverless handlers.
 - `src/main.rs` — local Gateway process entrypoint.
 - `src/config.rs` — environment-backed Gateway configuration.
