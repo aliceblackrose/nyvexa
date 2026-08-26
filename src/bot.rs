@@ -1,6 +1,7 @@
 use gloamwire::{
     RestClient,
     gateway::{GatewayConfig, GatewayConnection, GatewayEvent, GatewayIntents, TypedDispatchEvent},
+    http::CreateInteractionResponseQuery,
 };
 
 use crate::{commands, config::Config};
@@ -45,7 +46,25 @@ impl Bot {
                     }
                 }
                 TypedDispatchEvent::InteractionCreate(interaction) => {
-                    if let Err(error) = commands::handle(&self.rest, &interaction).await {
+                    let result = async {
+                        let Some(response) = commands::response(&interaction)? else {
+                            return Ok::<(), commands::CommandResult<()>::Err>(());
+                        };
+
+                        self.rest
+                            .create_interaction_response(
+                                interaction.id,
+                                &interaction.token,
+                                &response,
+                                &CreateInteractionResponseQuery::default(),
+                            )
+                            .await?;
+
+                        Ok(())
+                    }
+                    .await;
+
+                    if let Err(error) = result {
                         eprintln!("failed to handle interaction: {error}");
                     }
                 }
