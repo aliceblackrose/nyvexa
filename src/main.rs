@@ -1,15 +1,16 @@
 mod commands;
-mod config;
+
+use std::{env, error::Error};
 
 use gloam_commands::Registration;
 
-use config::Config;
+type AppResult<T> = Result<T, Box<dyn Error + Send + Sync>>;
 
 #[tokio::main]
-async fn main() -> commands::CommandResult<()> {
-    let config = Config::from_env()?;
+async fn main() -> AppResult<()> {
+    let token = env::var("DISCORD_TOKEN")?;
     let framework = commands::framework(Registration::Global)?;
 
-    framework.run(config.discord_token).await?;
+    framework.run(token).await?;
     Ok(())
 }

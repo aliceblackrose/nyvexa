@@ -4,20 +4,10 @@ version = "0.1.0"
 edition = "2024"
 rust-version = "1.98"
 default-run = "nyvexa"
-description = "A Discord bot powered by Gloamwire"
+description = "A Discord bot powered by Gloam Commands"
 license = "MIT"
 repository = "https://github.com/aliceblackrose/nyvexa"
 
 [dependencies]
-ed25519-dalek = "2.2"
 gloam-commands = { git = "https://github.com/aliceblackrose/gloam-macro-commands", rev = "5122e534b5195c7d8145b72f740d9f6e5dd13475" }
-gloamwire = { git = "https://github.com/aliceblackrose/gloamwire", rev = "ae8f98d9f99f9082b152358a838193f717b76c87" }
-hex = "0.4"
-http-body-util = "0.1"
-serde_json = "1"
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
-vercel_runtime = "2.4"
-
-[[bin]]
-name = "interactions"
-path = "api/interactions.rs"
