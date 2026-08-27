@@ -2,19 +2,19 @@ mod ping;
 
 use std::error::Error;
 
-use gloamwire::{
-    RestClient,
-    http::CreateApplicationCommand,
-    model::{ApplicationId, Interaction, InteractionMessageData, InteractionResponse},
-};
+use gloam_commands::{Framework, Registration, commands};
+use gloamwire::model::{Interaction, InteractionMessageData, InteractionResponse};
+
+#[derive(Debug, Default)]
+pub struct CommandData;
 
 pub type CommandResult<T> = Result<T, Box<dyn Error + Send + Sync>>;
 
-pub async fn register_global(rest: &RestClient, application_id: ApplicationId) -> gloamwire::Result<()> {
-    rest.create_global_application_command(application_id, &ping::definition())
-        .await?;
-
-    Ok(())
+pub fn framework(registration: Registration) -> gloam_commands::Result<Framework<CommandData>> {
+    Framework::builder(CommandData)
+        .commands(commands![ping::ping])
+        .registration(registration)
+        .build()
 }
 
 pub fn response(interaction: &Interaction) -> CommandResult<Option<InteractionResponse>> {

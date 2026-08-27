@@ -1,11 +1,13 @@
 # Nyvexa
 
-Nyvexa is a Discord bot built in Rust on top of [Gloamwire](https://github.com/cybellereaper/gloamwire).
+Nyvexa is a Discord bot built in Rust with [Gloam Commands](https://github.com/aliceblackrose/gloam-macro-commands) on top of [Gloamwire](https://github.com/aliceblackrose/gloamwire).
 
 Nyvexa supports two interaction transports:
 
 - Discord Gateway for a traditional long-running bot process.
 - Discord HTTP interactions for serverless deployment on Vercel.
+
+Gloam Commands owns Nyvexa's slash-command definitions, registry, Discord registration metadata, Gateway dispatch, command context, and responses. The Vercel endpoint remains a thin signed HTTP transport adapter because Gloam Commands currently exposes Gateway-event dispatch rather than a raw HTTP-interaction dispatcher.
 
 ## Requirements
 
@@ -56,7 +58,7 @@ Set `DISCORD_TOKEN` and run:
 cargo run
 ```
 
-On the first `READY` event, Nyvexa registers its global application commands and handles interactions over the Gateway. This mode is useful for local development and for features that require Gateway events.
+Nyvexa builds a `gloam_commands::Framework` with global registration enabled. The framework starts Gloamwire's managed shard set, synchronizes the slash-command registry once after Discord's first `READY`, and dispatches command interactions through the generated handlers.
 
 Do not run Gateway interaction handling at the same time as the configured HTTP interaction endpoint; Discord uses one interaction-delivery mechanism at a time.
 
@@ -67,11 +69,10 @@ Do not run Gateway interaction handling at the same time as the configured HTTP 
 ## Structure
 
 - `api/interactions.rs` — Vercel Rust serverless function and Discord signature validation.
-- `src/bin/register.rs` — one-shot global slash-command registration.
+- `src/bin/register.rs` — one-shot global slash-command synchronization through Gloam Commands.
 - `src/lib.rs` — shared application logic exposed to serverless handlers.
-- `src/main.rs` — local Gateway process entrypoint.
+- `src/main.rs` — local managed Gloam Commands Gateway runtime.
 - `src/config.rs` — environment-backed Gateway configuration.
-- `src/bot.rs` — Gateway event loop and transport adapter.
-- `src/commands/` — transport-independent application-command definitions and responses.
+- `src/commands/` — Gloam Commands handlers plus the Vercel HTTP response adapter.
 
-Gloamwire remains the Discord protocol/transport library; Nyvexa owns bot-specific command and application behavior.
+Gloam Commands owns slash-command framework behavior; Gloamwire remains the underlying Discord protocol and transport library; Nyvexa owns bot-specific application behavior.

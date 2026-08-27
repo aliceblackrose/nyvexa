@@ -1,13 +1,15 @@
-mod bot;
 mod commands;
 mod config;
 
-use bot::Bot;
+use gloam_commands::Registration;
+
 use config::Config;
 
 #[tokio::main]
 async fn main() -> commands::CommandResult<()> {
     let config = Config::from_env()?;
-    let mut bot = Bot::connect(config).await?;
-    bot.run().await
+    let framework = commands::framework(Registration::Global)?;
+
+    framework.run(config.discord_token).await?;
+    Ok(())
 }
