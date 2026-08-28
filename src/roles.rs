@@ -34,12 +34,11 @@ pub(crate) async fn handle_member_add(
 
     match data.store.verified(user_id.get()).await? {
         Some(verified) if verified.missing_since.is_none() => {
-            if let Some(rank) = verified.fc_rank.as_deref() {
-                if let Err(error) =
+            if let Some(rank) = verified.fc_rank.as_deref()
+                && let Err(error) =
                     apply_verified_roles(rest, &data.config, user_id, &mut member, rank).await
-                {
-                    warn!(?error, user = %user_id, "failed to restore verified roles");
-                }
+            {
+                warn!(?error, user = %user_id, "failed to restore verified roles");
             }
         }
         Some(_) => {
