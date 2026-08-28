@@ -3,7 +3,10 @@ use gloam_commands::prelude::*;
 
 use super::{CommandData, finish, invoking_user_id};
 
-#[command(description = "Show your current Nyvexa verification status", guild_only)]
+#[command(
+    description = "Show your current Nyvexa verification status",
+    guild_only
+)]
 pub(crate) async fn status(ctx: Context<CommandData>) -> Result<()> {
     ctx.defer_ephemeral().await?;
     let result = run(&ctx).await;
