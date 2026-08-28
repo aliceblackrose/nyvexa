@@ -42,9 +42,11 @@ mod tests {
         let challenge = generate_challenge();
         assert!(challenge.starts_with(CHALLENGE_PREFIX));
         assert_eq!(challenge.len(), CHALLENGE_PREFIX.len() + 24);
-        assert!(challenge[CHALLENGE_PREFIX.len()..]
-            .chars()
-            .all(|ch| ch.is_ascii_hexdigit() && !ch.is_ascii_lowercase()));
+        assert!(
+            challenge[CHALLENGE_PREFIX.len()..]
+                .chars()
+                .all(|ch| ch.is_ascii_hexdigit() && !ch.is_ascii_lowercase())
+        );
     }
 
     #[test]
