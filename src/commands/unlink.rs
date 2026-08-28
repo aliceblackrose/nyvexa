@@ -17,7 +17,7 @@ pub(crate) async fn unlink(ctx: Context<CommandData>) -> Result<()> {
 
 async fn run(ctx: &Context<CommandData>) -> AppResult<String> {
     let user_id = invoking_user_id(ctx)?;
-    ctx.data().store.unlink(user_id.get()).await?;
     revoke_fc_roles_for_user(ctx.rest(), &ctx.data().config, user_id).await?;
+    ctx.data().store.unlink(user_id.get()).await?;
     Ok("Your Lodestone character link has been removed.".into())
 }
