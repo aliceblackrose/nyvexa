@@ -6,7 +6,7 @@ mod roles;
 mod store;
 mod verification;
 
-use anyhow::{Context as _, Result};
+use anyhow::{Context as _, Result, anyhow};
 use gloam_commands::{DispatchOutcome, Registration};
 use gloamwire::{
     RestClient,
@@ -21,6 +21,8 @@ use crate::{commands::CommandData, config::Config, lodestone::LodestoneClient, s
 
 #[tokio::main]
 async fn main() -> Result<()> {
+    install_crypto_provider()?;
+
     tracing_subscriber::fmt()
         .with_env_filter(
             EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("nyvexa=info")),
@@ -33,6 +35,15 @@ async fn main() -> Result<()> {
     let data = CommandData::new(config, store, lodestone);
 
     run(data).await
+}
+
+fn install_crypto_provider() -> Result<()> {
+    if rustls::crypto::CryptoProvider::get_default().is_none() {
+        rustls::crypto::aws_lc_rs::default_provider()
+            .install_default()
+            .map_err(|_| anyhow!("failed to install the Rustls AWS-LC crypto provider"))?;
+    }
+    Ok(())
 }
 
 async fn run(data: CommandData) -> Result<()> {
