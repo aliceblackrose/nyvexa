@@ -11,3 +11,9 @@ repository = "https://github.com/aliceblackrose/nyvexa"
 [dependencies]
 gloam-commands = { git = "https://github.com/aliceblackrose/gloam-macro-commands", rev = "cda7d8487505b4f7c99f6f04aaa02d76f34993af" }
 tokio = { version = "1.53.1", features = ["macros", "rt-multi-thread"] }
+
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+strip = "symbols"
