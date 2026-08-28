@@ -71,15 +71,13 @@ fn character_embed(member: &VerifiedMember, details: &CharacterDetails) -> Embed
             .unwrap_or_else(|| details.world.clone()),
         true,
     );
-    push_field(
-        &mut fields,
-        "Character ID",
-        details.id.to_string(),
-        true,
-    );
+    push_field(&mut fields, "Character ID", details.id.to_string(), true);
 
     let rank = member.fc_rank.as_deref().unwrap_or("Unknown");
-    let free_company_name = details.free_company_name.as_deref().unwrap_or("Free Company");
+    let free_company_name = details
+        .free_company_name
+        .as_deref()
+        .unwrap_or("Free Company");
     let free_company = details
         .free_company_id
         .as_deref()
@@ -98,12 +96,7 @@ fn character_embed(member: &VerifiedMember, details: &CharacterDetails) -> Embed
     push_field(&mut fields, "Free Company", free_company, true);
 
     if let Some(active_job) = details.active_job.as_ref() {
-        push_field(
-            &mut fields,
-            "Current Job",
-            format_job(active_job),
-            true,
-        );
+        push_field(&mut fields, "Current Job", format_job(active_job), true);
     }
     if let Some(points) = details.achievement_points {
         push_field(
@@ -130,12 +123,7 @@ fn character_embed(member: &VerifiedMember, details: &CharacterDetails) -> Embed
         push_field(&mut fields, "City-state", city_state.clone(), true);
     }
     if let Some(grand_company) = details.grand_company.as_ref() {
-        push_field(
-            &mut fields,
-            "Grand Company",
-            grand_company.clone(),
-            true,
-        );
+        push_field(&mut fields, "Grand Company", grand_company.clone(), true);
     }
     if let Some(guardian) = details.guardian.as_ref() {
         push_field(&mut fields, "Guardian", guardian.clone(), true);
