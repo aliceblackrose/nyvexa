@@ -2,15 +2,16 @@ use anyhow::Result as AppResult;
 use gloam_commands::prelude::*;
 
 use crate::{
-    clock::unix_timestamp,
-    roles::apply_verified_roles_for_user,
-    store::StoreError,
+    clock::unix_timestamp, roles::apply_verified_roles_for_user, store::StoreError,
     verification::biography_contains_challenge,
 };
 
 use super::{CommandData, finish, invoking_user_id};
 
-#[command(description = "Check the pending Lodestone verification code", guild_only)]
+#[command(
+    description = "Check the pending Lodestone verification code",
+    guild_only
+)]
 pub(crate) async fn check(ctx: Context<CommandData>) -> Result<()> {
     ctx.defer_ephemeral().await?;
     let result = run(&ctx).await;
