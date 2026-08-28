@@ -22,8 +22,7 @@ pub(crate) struct Config {
 
 impl Config {
     pub(crate) fn from_env() -> Result<Self> {
-        let lodestone_region =
-            env::var("NYVEXA_LODESTONE_REGION").unwrap_or_else(|_| "na".into());
+        let lodestone_region = env::var("NYVEXA_LODESTONE_REGION").unwrap_or_else(|_| "na".into());
         if !matches!(lodestone_region.as_str(), "na" | "eu" | "jp" | "fr" | "de") {
             bail!("NYVEXA_LODESTONE_REGION must be one of: na, eu, jp, fr, de");
         }
