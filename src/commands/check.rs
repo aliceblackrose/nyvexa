@@ -84,8 +84,8 @@ async fn run(ctx: &Context<CommandData>) -> AppResult<String> {
         Err(error) => return Err(error.into()),
     }
 
-    ctx.data().store.delete_pending(user_id.get()).await?;
     apply_verified_roles_for_user(ctx.rest(), &ctx.data().config, user_id, &fc_member.rank).await?;
+    ctx.data().store.delete_pending(user_id.get()).await?;
 
     Ok(format!(
         "Verified **{}** on **{}**. Free Company membership confirmed with rank **{}**. Server access has been granted.",
