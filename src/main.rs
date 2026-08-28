@@ -6,6 +6,11 @@ mod roles;
 mod store;
 mod verification;
 
+use std::{
+    sync::Arc,
+    time::{SystemTime, UNIX_EPOCH},
+};
+
 use anyhow::{Context as _, Result, anyhow};
 use gloam_commands::{DispatchOutcome, Registration};
 use gloamwire::{
@@ -18,6 +23,8 @@ use tracing::{debug, error, info, warn};
 use tracing_subscriber::EnvFilter;
 
 use crate::{commands::CommandData, config::Config, lodestone::LodestoneClient, store::Store};
+
+const INTERACTION_DELAY_WARNING_MILLIS: u64 = 1_500;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -50,7 +57,10 @@ async fn run(data: CommandData) -> Result<()> {
     let token = data.config.discord_token.clone();
     let rest = RestClient::new(&token).context("failed to create Discord REST client")?;
     let guild_id = GuildId::new(data.config.guild_id);
-    let framework = commands::framework(data.clone(), Registration::Guild(guild_id))?;
+    let framework = Arc::new(commands::framework(
+        data.clone(),
+        Registration::Guild(guild_id),
+    )?);
     let mut shards = ShardManager::start(
         token,
         GatewayIntents::GUILDS | GatewayIntents::GUILD_MEMBERS,
@@ -70,6 +80,8 @@ async fn run(data: CommandData) -> Result<()> {
                         return Err(anyhow::anyhow!("Discord Gateway shard manager stopped"));
                     };
                     let event = event.context("Discord Gateway shard stopped")?;
+                    warn_if_interaction_delayed(&event.event)?;
+                    dispatch_command_event(&framework, &rest, &event)?;
                     handle_application_event(
                         &framework,
                         &rest,
@@ -77,9 +89,7 @@ async fn run(data: CommandData) -> Result<()> {
                         &event.event,
                         &mut initialized,
                         &mut sync_task,
-                    )
-                    .await?;
-                    dispatch_command_event(&framework, &rest, &event)?;
+                    )?;
                 }
                 signal = tokio::signal::ctrl_c() => {
                     signal.context("failed to listen for shutdown signal")?;
@@ -102,8 +112,8 @@ async fn run(data: CommandData) -> Result<()> {
     result
 }
 
-async fn handle_application_event(
-    framework: &gloam_commands::Framework<CommandData>,
+fn handle_application_event(
+    framework: &Arc<gloam_commands::Framework<CommandData>>,
     rest: &RestClient,
     data: &CommandData,
     event: &GatewayEvent,
@@ -122,31 +132,71 @@ async fn handle_application_event(
             info!(user = %ready.user.username, "connected to Discord");
 
             if !*initialized {
-                framework
-                    .synchronize_commands(rest, ready.application.id)
-                    .await
-                    .context("failed to register Nyvexa slash commands")?;
+                *initialized = true;
 
+                let framework = Arc::clone(framework);
                 let rest = rest.clone();
                 let data = data.clone();
+                let application_id = ready.application.id;
                 *sync_task = Some(tokio::spawn(async move {
+                    if let Err(error) = framework
+                        .synchronize_commands(&rest, application_id)
+                        .await
+                        .context("failed to register Nyvexa slash commands")
+                    {
+                        error!(?error, "failed to initialize Discord commands");
+                        return;
+                    }
+
                     roles::run_membership_sync_loop(rest, data).await;
                 }));
-                *initialized = true;
             }
         }
         "GUILD_MEMBER_ADD" => {
             let TypedDispatchEvent::GuildMemberAdd(event) = dispatch.typed()? else {
                 return Ok(());
             };
-            if let Err(error) = roles::handle_member_add(rest, data, event).await {
-                warn!(
-                    ?error,
-                    "failed to apply verification state to new guild member"
-                );
-            }
+            let rest = rest.clone();
+            let data = data.clone();
+            tokio::spawn(async move {
+                if let Err(error) = roles::handle_member_add(&rest, &data, event).await {
+                    warn!(
+                        ?error,
+                        "failed to apply verification state to new guild member"
+                    );
+                }
+            });
         }
         _ => {}
+    }
+
+    Ok(())
+}
+
+fn warn_if_interaction_delayed(event: &GatewayEvent) -> Result<()> {
+    let GatewayEvent::Dispatch(dispatch) = event else {
+        return Ok(());
+    };
+    if dispatch.name != "INTERACTION_CREATE" {
+        return Ok(());
+    }
+
+    let TypedDispatchEvent::InteractionCreate(interaction) = dispatch.typed()? else {
+        return Ok(());
+    };
+    let now_millis = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .context("system clock is before the Unix epoch")?
+        .as_millis();
+    let now_millis = u64::try_from(now_millis).unwrap_or(u64::MAX);
+    let age_millis = now_millis.saturating_sub(interaction.id.timestamp_millis());
+
+    if age_millis >= INTERACTION_DELAY_WARNING_MILLIS {
+        warn!(
+            interaction = %interaction.id,
+            age_ms = age_millis,
+            "Discord interaction reached Nyvexa late; acknowledgement deadline may be at risk"
+        );
     }
 
     Ok(())
