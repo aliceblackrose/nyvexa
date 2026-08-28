@@ -8,7 +8,7 @@ use std::sync::Arc;
 
 use anyhow::{Context as _, Result as AppResult};
 use gloam_commands::{Context, Framework, Registration, commands};
-use gloamwire::model::UserId;
+use gloamwire::model::{Embed, UserId};
 use tracing::error;
 
 use crate::{config::Config, lodestone::LodestoneClient, store::Store};
@@ -68,15 +68,35 @@ pub(super) async fn finish(
     let message = match result {
         Ok(message) => message,
         Err(error) => {
-            error!(
-                ?error,
-                command = ctx.command_path().join(" "),
-                "command failed"
-            );
+            log_command_error(ctx, &error);
             "Something went wrong while processing that request. Please try again later."
                 .to_string()
         }
     };
 
     ctx.reply_ephemeral(message).await
+}
+
+pub(super) async fn finish_embed(
+    ctx: &Context<CommandData>,
+    result: AppResult<Embed>,
+) -> gloam_commands::Result<()> {
+    match result {
+        Ok(embed) => ctx.reply_ephemeral_embed(embed).await,
+        Err(error) => {
+            log_command_error(ctx, &error);
+            ctx.reply_ephemeral(
+                "Something went wrong while processing that request. Please try again later.",
+            )
+            .await
+        }
+    }
+}
+
+fn log_command_error(ctx: &Context<CommandData>, error: &anyhow::Error) {
+    error!(
+        ?error,
+        command = ctx.command_path().join(" "),
+        "command failed"
+    );
 }
