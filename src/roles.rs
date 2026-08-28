@@ -9,10 +9,7 @@ use gloamwire::{
 use tracing::{info, warn};
 
 use crate::{
-    clock::unix_timestamp,
-    commands::CommandData,
-    config::Config,
-    lodestone::FreeCompanyMember,
+    clock::unix_timestamp, commands::CommandData, config::Config, lodestone::FreeCompanyMember,
 };
 
 const AUDIT_REASON: &str = "Nyvexa Free Company verification";
@@ -268,8 +265,7 @@ async fn sync_all_members(rest: &RestClient, data: &CommandData) -> Result<()> {
             continue;
         }
 
-        if let Err(error) =
-            revoke_fc_roles(rest, &data.config, user_id, &mut discord_member).await
+        if let Err(error) = revoke_fc_roles(rest, &data.config, user_id, &mut discord_member).await
         {
             warn!(
                 ?error,
