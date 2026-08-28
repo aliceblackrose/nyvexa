@@ -9,5 +9,5 @@ license = "MIT"
 repository = "https://github.com/aliceblackrose/nyvexa"
 
 [dependencies]
-gloam-commands = { git = "https://github.com/aliceblackrose/gloam-macro-commands", rev = "5122e534b5195c7d8145b72f740d9f6e5dd13475" }
-tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+gloam-commands = { git = "https://github.com/aliceblackrose/gloam-macro-commands", rev = "cda7d8487505b4f7c99f6f04aaa02d76f34993af" }
+tokio = { version = "1.53.1", features = ["macros", "rt-multi-thread"] }
