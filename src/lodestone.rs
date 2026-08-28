@@ -82,10 +82,7 @@ impl LodestoneClient {
         let base_url = Url::parse(&format!("https://{region}.finalfantasyxiv.com/"))
             .map_err(|error| LodestoneError::Parse(error.to_string()))?;
         let mut headers = HeaderMap::new();
-        headers.insert(
-            ACCEPT_LANGUAGE,
-            HeaderValue::from_static("en-US,en;q=0.9"),
-        );
+        headers.insert(ACCEPT_LANGUAGE, HeaderValue::from_static("en-US,en;q=0.9"));
         let http = Client::builder()
             .timeout(Duration::from_secs(15))
             .default_headers(headers)
@@ -231,17 +228,12 @@ impl LodestoneClient {
             .map_err(|error| LodestoneError::Parse(error.to_string()))
     }
 
-    async fn fetch_fc_member_page(
-        &self,
-        fc_id: &str,
-        page: u32,
-    ) -> Result<String, LodestoneError> {
+    async fn fetch_fc_member_page(&self, fc_id: &str, page: u32) -> Result<String, LodestoneError> {
         let mut url = self
             .base_url
             .join(&format!("lodestone/freecompany/{fc_id}/member/"))
             .map_err(|error| LodestoneError::Parse(error.to_string()))?;
-        url.query_pairs_mut()
-            .append_pair("page", &page.to_string());
+        url.query_pairs_mut().append_pair("page", &page.to_string());
         self.fetch_text(url).await
     }
 
@@ -294,7 +286,8 @@ fn parse_character_search(html: &str) -> Result<Vec<CharacterSearchResult>, Lode
 fn parse_character_profile(html: &str) -> Result<CharacterProfile, LodestoneError> {
     let document = Html::parse_document(html);
     let bio_selector = selector(".character__selfintroduction")?;
-    let fc_selector = selector(".character__freecompany__name h4 a, .character__freecompany__name a")?;
+    let fc_selector =
+        selector(".character__freecompany__name h4 a, .character__freecompany__name a")?;
 
     let biography = text_of(document.select(&bio_selector).next()).unwrap_or_default();
     let free_company_id = document
@@ -364,7 +357,12 @@ fn parse_character_details(
 
         if matches_label(
             &block_title,
-            &["Race/Clan/Gender", "Volk / Stamm / Geschlecht", "Race / Ethnie / Sexe", "種族/部族/性別"],
+            &[
+                "Race/Clan/Gender",
+                "Volk / Stamm / Geschlecht",
+                "Race / Ethnie / Sexe",
+                "種族/部族/性別",
+            ],
         ) {
             race = parts.first().cloned();
             clan = parts.get(1).cloned();
@@ -387,7 +385,12 @@ fn parse_character_details(
             city_state = (!parts.is_empty()).then(|| parts.join(" / "));
         } else if matches_label(
             &block_title,
-            &["Grand Company", "Staatliche Gesellschaft", "Grande compagnie", "所属グランドカンパニー"],
+            &[
+                "Grand Company",
+                "Staatliche Gesellschaft",
+                "Grande compagnie",
+                "所属グランドカンパニー",
+            ],
         ) {
             grand_company = (!parts.is_empty()).then(|| parts.join(" / "));
         }
@@ -582,7 +585,8 @@ fn selector(value: &str) -> Result<Selector, LodestoneError> {
 }
 
 fn optional_text(document: &Html, selector_value: &str) -> Result<Option<String>, LodestoneError> {
-    Ok(text_of(document.select(&selector(selector_value)?).next()).filter(|value| !value.is_empty()))
+    Ok(text_of(document.select(&selector(selector_value)?).next())
+        .filter(|value| !value.is_empty()))
 }
 
 fn first_attribute(
