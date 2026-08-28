@@ -9,8 +9,20 @@ license = "MIT"
 repository = "https://github.com/aliceblackrose/nyvexa"
 
 [dependencies]
-gloam-commands = { git = "https://github.com/aliceblackrose/gloam-macro-commands", rev = "cda7d8487505b4f7c99f6f04aaa02d76f34993af" }
-tokio = { version = "1.53.1", features = ["macros", "rt-multi-thread"] }
+anyhow = "1"
+gloam-commands = { git = "https://github.com/aliceblackrose/gloam-macro-commands", rev = "cda7d8487505b4f7c99f6f04aaa02d76f34993af", features = ["tracing"] }
+gloamwire = { git = "https://github.com/aliceblackrose/gloamwire", rev = "ae8f98d9f99f9082b152358a838193f717b76c87" }
+rand = "0.8.5"
+reqwest = { version = "0.12", default-features = false, features = ["brotli", "deflate", "gzip", "rustls-tls"] }
+scraper = "0.20"
+serde_json = "1"
+sha2 = "0.10"
+sqlx = { version = "0.8", default-features = false, features = ["macros", "migrate", "runtime-tokio-rustls", "sqlite"] }
+thiserror = "2"
+tokio = { version = "1.53.1", features = ["macros", "rt-multi-thread", "signal", "time"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
+url = "2.5"
 
 [profile.release]
 opt-level = 3
