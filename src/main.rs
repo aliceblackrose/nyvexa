@@ -17,9 +17,7 @@ use tokio::task::JoinHandle;
 use tracing::{debug, error, info, warn};
 use tracing_subscriber::EnvFilter;
 
-use crate::{
-    commands::CommandData, config::Config, lodestone::LodestoneClient, store::Store,
-};
+use crate::{commands::CommandData, config::Config, lodestone::LodestoneClient, store::Store};
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -131,7 +129,10 @@ async fn handle_application_event(
                 return Ok(());
             };
             if let Err(error) = roles::handle_member_add(rest, data, event).await {
-                warn!(?error, "failed to apply verification state to new guild member");
+                warn!(
+                    ?error,
+                    "failed to apply verification state to new guild member"
+                );
             }
         }
         _ => {}
@@ -151,7 +152,10 @@ fn dispatch_command_event(
             debug!(command = %name, "ignored unregistered Discord command");
         }
         DispatchOutcome::AtCapacity { name } => {
-            warn!(command = name, "command rejected because Nyvexa is at capacity");
+            warn!(
+                command = name,
+                "command rejected because Nyvexa is at capacity"
+            );
         }
         DispatchOutcome::Spawned(task) => {
             let command = task.command_name();
