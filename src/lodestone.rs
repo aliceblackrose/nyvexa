@@ -159,17 +159,12 @@ impl LodestoneClient {
         Ok(roster)
     }
 
-    async fn fetch_fc_member_page(
-        &self,
-        fc_id: &str,
-        page: u32,
-    ) -> Result<String, LodestoneError> {
+    async fn fetch_fc_member_page(&self, fc_id: &str, page: u32) -> Result<String, LodestoneError> {
         let mut url = self
             .base_url
             .join(&format!("lodestone/freecompany/{fc_id}/member/"))
             .map_err(|error| LodestoneError::Parse(error.to_string()))?;
-        url.query_pairs_mut()
-            .append_pair("page", &page.to_string());
+        url.query_pairs_mut().append_pair("page", &page.to_string());
         self.fetch_text(url).await
     }
 
